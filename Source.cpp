@@ -1,7 +1,9 @@
-/*Merging sort: Generate an array of integers with size 1024, 2048, 4096, 8192, 16384,
-and use merge sort to sort the arrays in ascending order on 1, 2, 4, and 8  processors with Hypercube (mapped as  Binary Tree). 
-Compute the run time, speedup and efficiency in each case of the  20 cases. */
 
+/*Merging sort: This program will Generate an array of integers with fixed size (16384),
+and use merge sort to sort the arrays in ascending order on a variable number of processors with Hypercube (mapped as  Binary Tree).
+to Compute the run time for each execution and we can use that output to calculate 
+speedup and efficiency in each case.
+ */
 #include <stdio.h>
 #include <math.h>
 #include "mpi.h"
@@ -9,10 +11,10 @@ Compute the run time, speedup and efficiency in each case of the  20 cases. */
 #include <cstdlib>
 #include <ctime>
 
-#define AN 4096 
-#define MAX 99 
+#define AN 16384 /* Maximum list size */
+#define MAX 99  /* Maximum value of a list element */
 
-int CUBESIZE, DIMENSION, RANK;          
+int CUBESIZE, DIMENSION, RANK;    /* Cube size, dimension, rank */      
 void parallel_mergesort(int myid, int list[], int n);
 void mergesort(int list[], int left, int right, int descending);
 
@@ -20,7 +22,7 @@ void mergesort(int list[], int left, int right, int descending);
 
 int main(int argc, char* argv[])
 {
-    int list[AN], n = 4096, i;
+    int list[AN], n = 16384, i;
 
     MPI_Init(&argc, &argv); 
 
@@ -52,7 +54,7 @@ int main(int argc, char* argv[])
 
 
 
-
+/* Sequential mergesort (either ascending or descending) */
 void mergesort(int list[], int l, int r, int asc)
 {
     int A, B, C, D, m, tempARRAY[AN];
@@ -83,27 +85,27 @@ void mergesort(int list[], int l, int r, int asc)
         for (C = l; C <= r; C++) list[C] = tempARRAY[C];
     }
 }
-
+/* Parallel mergesort */
 void parallel_mergesort(int myid, int list[], int n)
 {
-    int listsize, l, m, bitl = 1, zzz, neighbor, i;
+    int listSize, l, m, bitl = 1, bitm, neighbor, i;
     MPI_Status status;
 
-    listsize = n / CUBESIZE;
-    mergesort(list, 0, listsize - 1, myid & bitl);
+    listSize = n / CUBESIZE;
+    mergesort(list, 0, listSize - 1, myid & bitl);
 
     for (l = 1; l <= DIMENSION; l++) {
         bitl = bitl << 1;
-        for (zzz = 1, m = 0; m < l - 1; m++) zzz *= 2;
+        for (bitm = 1, m = 0; m < l - 1; m++) bitm *= 2;
         for (m = l - 1; m >= 0; m--) {
-            neighbor = myid ^ zzz;
-            MPI_Send(list, listsize, MPI_INT, neighbor, l * DIMENSION + m, MPI_COMM_WORLD);
-            MPI_Recv(&list[listsize], listsize, MPI_INT, neighbor, l * DIMENSION + m,
+            neighbor = myid ^ bitm;
+            MPI_Send(list, listSize, MPI_INT, neighbor, l * DIMENSION + m, MPI_COMM_WORLD);
+            MPI_Recv(&list[listSize], listSize, MPI_INT, neighbor, l * DIMENSION + m,
                 MPI_COMM_WORLD, &status);
-            mergesort(list, 0, 2 * listsize - 1, myid & bitl);
-            if (myid & zzz)
-                for (i = 0; i < listsize; i++) list[i] = list[i + listsize];
-            zzz = zzz >> 1;
+            mergesort(list, 0, 2 * listSize - 1, myid & bitl);
+            if (myid & bitm)
+                for (i = 0; i < listSize; i++) list[i] = list[i + listSize];
+            bitm = bitm >> 1;
         }
     }
 }
