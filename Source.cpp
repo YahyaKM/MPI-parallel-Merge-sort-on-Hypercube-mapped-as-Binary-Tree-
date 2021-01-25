@@ -1,6 +1,6 @@
 
 /*Merging sort: This program will Generate an array of integers with fixed size (16384),
-and use merge sort to sort the arrays in ascending order on a variable number of processors with Hypercube (mapped as  Binary Tree).
+and use merge sort to sort the arrays in ascending/descending order on a variable number of processors with Hypercube (mapped as  Binary Tree).
 to Compute the run time for each execution and we can use that output to calculate 
 speedup and efficiency in each case.
  */
@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
 {
     int list[AN], n = 16384, i;
 
-    MPI_Init(&argc, &argv); 
+    MPI_Init(&argc, &argv); /* Init MPI environment */
 
     MPI_Comm_size(MPI_COMM_WORLD, &CUBESIZE);
     DIMENSION = log(CUBESIZE + 1e-10) / log(2.0);
